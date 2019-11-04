@@ -66,6 +66,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
               }
               for (Location location : locationResult.getLocations()) {
                   // Update UI with location data
+                  mCurrentLocation = location;
                   updateLocationUI();
               }
           }
@@ -97,8 +98,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Get the current location of the device and set the position of the map
         getDeviceLocation();
 
-        updateLocationUI();
-
         startLocationUpdates();
     }
 
@@ -119,6 +118,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
+        }
+        if (mCurrentLocation != null) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(mCurrentLocation.getLatitude(),
+                            mCurrentLocation.getLongitude()), mMap.getCameraPosition().zoom));
         }
     }
 
@@ -159,8 +163,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
-                            mCurrentLocation.setLatitude(mDefaultLocation.latitude);
-                            mCurrentLocation.setLongitude(mDefaultLocation.longitude);
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,
+                                    DEFAULT_ZOOM));
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
                         }
                     }
@@ -169,12 +173,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
-    }
-
-    private void updateUI() {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(mCurrentLocation.getLatitude(),
-                        mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
     }
 
     private void startLocationUpdates() {
