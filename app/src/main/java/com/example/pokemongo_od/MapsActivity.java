@@ -32,6 +32,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.SphericalUtil;
+
+import java.math.BigDecimal;
+import java.util.Random;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -89,8 +93,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
+     * This is where we can add markers or lines, add listeners or move the camera.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -190,6 +193,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mCurrentLocation.getLatitude(),
                                             mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
+                            spawnWildPokemon();
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -214,6 +218,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mLocationCallback,
                 Looper.getMainLooper());
 
+    }
+
+    void spawnWildPokemon() {
+        if (mCurrentLocation == null) {
+            return;
+        }
+        Random r = new Random();
+        LatLng position = SphericalUtil.computeOffset(
+                new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()),
+                r.nextInt(1200),
+                r.nextInt(360));
+
+        mMap.addMarker(new MarkerOptions()
+                .flat(true)
+                .icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("wild_pokemon", 100, 100)))
+                .anchor(0.5f, 0.5f)
+                .position(position));
     }
 
 
