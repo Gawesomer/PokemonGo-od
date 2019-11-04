@@ -7,6 +7,8 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,7 +25,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -50,6 +55,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int DEFAULT_ZOOM = 15;
 
     private LocationCallback mLocationCallback;
+
+    private Marker mPositionMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +108,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMaxZoomPreference(20);  // TODO: Magic number
         mMap.setMinZoomPreference(14);
 
+        // Create position marker
+        mPositionMarker = mMap.addMarker(new MarkerOptions()
+                .flat(true)
+                .icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("red_sprite", 100, 100)))
+                .anchor(0.5f, 0.5f)
+                .position(mDefaultLocation));
+
         // Turn on the My Location layer and the related control on the map
         updateLocationUI();
 
@@ -117,8 +131,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         try {
             if (mLocationPermissionGranted) {
-                mMap.setMyLocationEnabled(true);
-                //mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                if (mCurrentLocation != null) {
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(mCurrentLocation.getLatitude(),
+                                    mCurrentLocation.getLongitude()), mMap.getCameraPosition().zoom));
+                    mPositionMarker.setPosition(new
+                            LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+                }
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -128,11 +147,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
-        if (mCurrentLocation != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(mCurrentLocation.getLatitude(),
-                            mCurrentLocation.getLongitude()), mMap.getCameraPosition().zoom));
-        }
+    }
+
+    public Bitmap resizeMapIcons(String iconName, int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),
+                getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+        return resizedBitmap;
     }
 
     private void getLocationPermission() {
