@@ -8,10 +8,16 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,6 +27,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -34,10 +41,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mCurrentLocation;
 
+    private LocationRequest mLocationRequest;
+    private static final long UPDATE_INTERVAL = 1000 * 5;
+
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private static final int DEFAULT_ZOOM = 15;
+
+    private LocationCallback mLocationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +58,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Construct a FusedLocationProviderClient
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        mLocationCallback = new LocationCallback() {
+          public void onLocationResult(LocationResult locationResult) {
+              if (locationResult == null) {
+                  return;
+              }
+              for (Location location : locationResult.getLocations()) {
+                  // Update UI with location data
+                  updateLocationUI();
+              }
+          }
+        };
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -72,6 +96,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Get the current location of the device and set the position of the map
         getDeviceLocation();
+
+        updateLocationUI();
+
+        startLocationUpdates();
     }
 
 
@@ -131,8 +159,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,
-                                    DEFAULT_ZOOM));
+                            mCurrentLocation.setLatitude(mDefaultLocation.latitude);
+                            mCurrentLocation.setLongitude(mDefaultLocation.longitude);
                             mMap.getUiSettings().setMyLocationButtonEnabled(false);
                         }
                     }
@@ -141,6 +169,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+    private void updateUI() {
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(mCurrentLocation.getLatitude(),
+                        mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
+    }
+
+    private void startLocationUpdates() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+
+        mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest,
+                mLocationCallback,
+                Looper.getMainLooper());
+
     }
 
 
