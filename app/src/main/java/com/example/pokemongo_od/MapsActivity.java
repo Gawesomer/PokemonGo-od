@@ -42,7 +42,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location mCurrentLocation;
 
     private LocationRequest mLocationRequest;
-    private static final long UPDATE_INTERVAL = 1000 * 5;
+    private static final long UPDATE_INTERVAL = 1000 * 2;
 
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted
@@ -92,6 +92,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        // Disable camera panning and rotation and restrict zoom
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setScrollGesturesEnabled(false);
+        mMap.getUiSettings().setRotateGesturesEnabled(false);
+        mMap.getUiSettings().setZoomGesturesEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.setMaxZoomPreference(20);  // TODO: Magic number
+        mMap.setMinZoomPreference(14);
+
         // Turn on the My Location layer and the related control on the map
         updateLocationUI();
 
@@ -109,7 +118,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             if (mLocationPermissionGranted) {
                 mMap.setMyLocationEnabled(true);
-                mMap.getUiSettings().setMyLocationButtonEnabled(true);
+                //mMap.getUiSettings().setMyLocationButtonEnabled(true);
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
