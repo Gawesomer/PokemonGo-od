@@ -40,6 +40,8 @@ import java.util.Random;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    // Future Reference: https://stackoverflow.com/questions/29352051/keep-map-centered-regardless-of-where-you-pinch-zoom-on-android
+
     private GoogleMap mMap;
 
     private static final String TAG = MapsActivity.class.getSimpleName();
@@ -62,6 +64,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Marker mPositionMarker;
 
+    private Marker[] wildPokemons = new Marker[5];
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +82,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
               for (Location location : locationResult.getLocations()) {
                   // Update UI with location data
                   mCurrentLocation = location;
+
+                  for (int i = 0; i < wildPokemons.length; i++) {
+                      if (wildPokemons[i] != null) {
+                          float[] results = new float[1];
+                          Location.distanceBetween(
+                                  wildPokemons[i].getPosition().latitude,
+                                  wildPokemons[i].getPosition().longitude,
+                                  mCurrentLocation.getLatitude(),
+                                  mCurrentLocation.getLongitude(),
+                                  results);
+                          if (results[0] <= 20) {
+                              wildPokemons[i].remove();
+                              wildPokemons[i] = spawnWildPokemon();
+                          }
+                      }
+                  }
+
                   updateLocationUI();
               }
           }
@@ -101,6 +122,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        // Enables marker dragging used for debugging
+//        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+//            @Override
+//            public void onMarkerDragStart(Marker marker) {
+//
+//            }
+//
+//            @Override
+//            public void onMarkerDrag(Marker marker) {
+//
+//            }
+//
+//            @Override
+//            public void onMarkerDragEnd(Marker marker) {
+//
+//            }
+//        });
 
         // Disable camera panning and rotation and restrict zoom
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -193,7 +232,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     new LatLng(mCurrentLocation.getLatitude(),
                                             mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
-                            spawnWildPokemon();
+                            for (int i = 0; i < wildPokemons.length; i++) {
+                                wildPokemons[i] = spawnWildPokemon();
+                            }
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -220,9 +261,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    void spawnWildPokemon() {
+    private Marker spawnWildPokemon() {
         if (mCurrentLocation == null) {
-            return;
+            return null;
         }
         Random r = new Random();
         LatLng position = SphericalUtil.computeOffset(
@@ -230,10 +271,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 r.nextInt(1200),
                 r.nextInt(360));
 
-        mMap.addMarker(new MarkerOptions()
+        return mMap.addMarker(new MarkerOptions()
                 .flat(true)
                 .icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("wild_pokemon", 100, 100)))
                 .anchor(0.5f, 0.5f)
+                //.draggable(true)      // Enables marker dragging used for debugging
                 .position(position));
     }
 
