@@ -15,6 +15,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -67,6 +68,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private WildPokemon[] wildPokemons = new WildPokemon[5];
 
+    private Pokedex dex = new Pokedex();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,9 +97,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                   mCurrentLocation.getLatitude(),
                                   mCurrentLocation.getLongitude(),
                                   results);
-                          //Log.d("myTag", "Position: " + wildPokemons[i].getPosition());
-                          //Log.d("myTag", "Distance: " + results[0]);
                           if (results[0] <= 20) {
+                              // Found Pokemon
+                              dex.getPokemonByNumber(wildPokemons[i].getNumber()).setPokemonSeen();
+                              Toast myToast = Toast.makeText(activity, "Seen: " + wildPokemons[i].getNumber(), Toast.LENGTH_SHORT);
+                              myToast.show();
+                              wildPokemons[i].close();
+                              wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
+                          }
+                          if (results[0] >= 1400) {
+                              // Pokemon out of range
                               wildPokemons[i].close();
                               wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
                           }

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
