@@ -35,6 +35,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.maps.android.SphericalUtil;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -64,7 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Marker mPositionMarker;
 
-    private Marker[] wildPokemons = new Marker[5];
+    private Pokemon[] wildPokemons = new Pokemon[1];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Construct a FusedLocationProviderClient
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        final MapsActivity activity = this;
         mLocationCallback = new LocationCallback() {
           public void onLocationResult(LocationResult locationResult) {
               if (locationResult == null) {
@@ -92,9 +94,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                   mCurrentLocation.getLatitude(),
                                   mCurrentLocation.getLongitude(),
                                   results);
+                          //Log.d("myTag", "Position: " + wildPokemons[i].getPosition());
+                          //Log.d("myTag", "Distance: " + results[0]);
                           if (results[0] <= 20) {
-                              wildPokemons[i].remove();
-                              wildPokemons[i] = spawnWildPokemon();
+                              wildPokemons[i].close();
+                              wildPokemons[i] = new Pokemon(activity, mMap, mCurrentLocation);
                           }
                       }
                   }
@@ -122,24 +126,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Enables marker dragging used for debugging
-//        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-//            @Override
-//            public void onMarkerDragStart(Marker marker) {
-//
-//            }
-//
-//            @Override
-//            public void onMarkerDrag(Marker marker) {
-//
-//            }
-//
-//            @Override
-//            public void onMarkerDragEnd(Marker marker) {
-//
-//            }
-//        });
 
         // Disable camera panning and rotation and restrict zoom
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -223,6 +209,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         try {
             if (mLocationPermissionGranted) {
                 Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
+                final MapsActivity activity = this;
                 locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
                     @Override
                     public void onComplete(@NonNull Task<Location> task) {
@@ -233,7 +220,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     new LatLng(mCurrentLocation.getLatitude(),
                                             mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
                             for (int i = 0; i < wildPokemons.length; i++) {
-                                wildPokemons[i] = spawnWildPokemon();
+                                wildPokemons[i] = new Pokemon(activity, mMap, mCurrentLocation);
                             }
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
@@ -259,24 +246,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mLocationCallback,
                 Looper.getMainLooper());
 
-    }
-
-    private Marker spawnWildPokemon() {
-        if (mCurrentLocation == null) {
-            return null;
-        }
-        Random r = new Random();
-        LatLng position = SphericalUtil.computeOffset(
-                new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()),
-                r.nextInt(1200),
-                r.nextInt(360));
-
-        return mMap.addMarker(new MarkerOptions()
-                .flat(true)
-                .icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("wild_pokemon", 100, 100)))
-                .anchor(0.5f, 0.5f)
-                //.draggable(true)      // Enables marker dragging used for debugging
-                .position(position));
     }
 
 
