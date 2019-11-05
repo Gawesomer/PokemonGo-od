@@ -65,7 +65,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Marker mPositionMarker;
 
-    private Pokemon[] wildPokemons = new Pokemon[1];
+    private WildPokemon[] wildPokemons = new WildPokemon[5];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                           //Log.d("myTag", "Distance: " + results[0]);
                           if (results[0] <= 20) {
                               wildPokemons[i].close();
-                              wildPokemons[i] = new Pokemon(activity, mMap, mCurrentLocation);
+                              wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
                           }
                       }
                   }
@@ -220,7 +220,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     new LatLng(mCurrentLocation.getLatitude(),
                                             mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
                             for (int i = 0; i < wildPokemons.length; i++) {
-                                wildPokemons[i] = new Pokemon(activity, mMap, mCurrentLocation);
+                                wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
                             }
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");

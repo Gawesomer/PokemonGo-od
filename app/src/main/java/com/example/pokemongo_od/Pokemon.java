@@ -19,42 +19,19 @@ import java.util.Random;
 public class Pokemon {
 
     private int number;
-    private Marker marker;
 
-    public Pokemon(@NonNull MapsActivity activity, @NonNull GoogleMap map, @NonNull Location currentLocation) {
+    private enum CatchState {
+        UNSEEN, SEEN, CAUGHT;
+    }
+
+    private CatchState mCatchState;
+
+    public Pokemon() {
         Random r = new Random();
 
         number = r.nextInt(150);
 
-        LatLng position = SphericalUtil.computeOffset(
-                new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()),
-                r.nextInt(1200),
-                r.nextInt(360));
-
-//        // Enables marker dragging used for debugging
-//        map.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-//            @Override
-//            public void onMarkerDragStart(Marker marker) {
-//
-//            }
-//
-//            @Override
-//            public void onMarkerDrag(Marker marker) {
-//                Log.d("myTag", "Position: " + marker.getPosition());
-//            }
-//
-//            @Override
-//            public void onMarkerDragEnd(Marker marker) {
-//
-//            }
-//        });
-
-        marker = map.addMarker(new MarkerOptions()
-                .flat(true)
-                .icon(BitmapDescriptorFactory.fromBitmap(activity.resizeMapIcons("wild_pokemon", 100, 100)))
-                .anchor(0.5f, 0.5f)
-                //.draggable(true)      // Enables marker dragging used for debugging
-                .position(position));
+        mCatchState = CatchState.UNSEEN;
     }
 
     public int getNumber() {
@@ -65,15 +42,11 @@ public class Pokemon {
         this.number = number;
     }
 
-    public LatLng getPosition() {
-        return marker.getPosition();
+    public void setPokemonSeen() {
+        mCatchState = CatchState.SEEN;
     }
 
-    public void setPosition(LatLng position) {
-        marker.setPosition(position);
-    }
-
-    public void close() {
-        marker.remove();
+    public void setPokemonCaught() {
+        mCatchState = CatchState.CAUGHT;
     }
 }
