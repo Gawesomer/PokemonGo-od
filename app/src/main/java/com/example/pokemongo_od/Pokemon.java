@@ -40,6 +40,16 @@ public class Pokemon {
 
         number = r.nextInt(151)+1;
 
+        construct(context);
+    }
+
+    public Pokemon(Context context, int number) {
+        this.number = number;
+
+        construct(context);
+    }
+
+    private void construct(Context context) {
         try {
             reader = new LineNumberReader(new InputStreamReader(context.getAssets().open("pokemonDB.csv")));
         } catch (IOException e) {
@@ -82,6 +92,13 @@ public class Pokemon {
             return "SEEN";
         }
         return "CAUGHT";
+    }
+
+    public boolean wasSeen() {
+        if (mCatchState == CatchState.UNSEEN) {
+            return false;
+        }
+        return true;
     }
 
     public String getName() {

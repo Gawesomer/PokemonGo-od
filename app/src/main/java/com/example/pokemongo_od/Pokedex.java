@@ -14,7 +14,7 @@ public class Pokedex {
     protected Pokedex(Context context) {
         pokemonList = new Pokemon[151];
         for (int i = 0; i < pokemonList.length; i++) {
-            pokemonList[i] = new Pokemon(context);
+            pokemonList[i] = new Pokemon(context, i+1);
         }
     }
 
