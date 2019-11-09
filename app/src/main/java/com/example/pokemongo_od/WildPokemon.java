@@ -21,7 +21,7 @@ public class WildPokemon extends Pokemon {
     private Marker marker;
 
     public WildPokemon(@NonNull MapsActivity activity, @NonNull GoogleMap map, @NonNull Location currentLocation) {
-        super();
+        super(activity);
         Random r = new Random();
 
         LatLng position = SphericalUtil.computeOffset(

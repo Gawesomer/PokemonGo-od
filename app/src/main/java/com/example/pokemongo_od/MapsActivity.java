@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,6 +16,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -68,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private WildPokemon[] wildPokemons = new WildPokemon[5];
 
-    private Pokedex dex = new Pokedex();
+    //private Pokedex dex = new Pokedex();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                   results);
                           if (results[0] <= 20) {
                               // Found Pokemon
-                              dex.getPokemonByNumber(wildPokemons[i].getNumber()).setPokemonSeen();
+                              Pokedex.getInstance(activity).getPokemonByNumber(wildPokemons[i].getNumber()).setPokemonSeen();
                               Toast myToast = Toast.makeText(activity, "Seen: " + wildPokemons[i].getNumber(), Toast.LENGTH_SHORT);
                               myToast.show();
                               wildPokemons[i].close();
@@ -255,6 +257,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest,
                 mLocationCallback,
                 Looper.getMainLooper());
+
+    }
+
+    public void menuMe(View view) {
+        // Create and Intent to start the second activity
+        Intent menuIntent = new Intent(this, PokedexActivity.class);
+
+        startActivity(menuIntent);
 
     }
 
