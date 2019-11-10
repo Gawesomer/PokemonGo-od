@@ -20,8 +20,12 @@ public class PokedexActivity extends AppCompatActivity {
         String[] list = new String[151];
         for (int i = 0; i < list.length; i++) {
             list[i] = i + " ";
-            list[i] += Pokedex.getInstance(this).getPokemonByNumber(i).getName();
-            list[i] +=  "\tCatch State: " + Pokedex.getInstance(this).getPokemonByNumber(i).getCatchState();
+            if (Pokedex.getInstance(this).getPokemonByNumber(i).wasSeen()) {
+                list[i] += Pokedex.getInstance(this).getPokemonByNumber(i).getName();
+            } else {
+                list[i] += "---";
+            }
+            //list[i] +=  "\tCatch State: " + Pokedex.getInstance(this).getPokemonByNumber(i).getCatchState();
         }
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
 
