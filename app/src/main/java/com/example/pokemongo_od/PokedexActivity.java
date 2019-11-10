@@ -2,10 +2,16 @@ package com.example.pokemongo_od;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
+import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Comparator;
 
@@ -25,9 +31,25 @@ public class PokedexActivity extends AppCompatActivity {
             } else {
                 list[i] += "---";
             }
-            //list[i] +=  "\tCatch State: " + Pokedex.getInstance(this).getPokemonByNumber(i).getCatchState();
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, list);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String item = arrayAdapter.getItem(position);
+                if (!item.contains("---")) {
+                    // Create and Intent to start the second activity
+                    Intent pokedexEntry = new Intent(getApplicationContext(), PokedexEntry.class);
+
+                    int number = Integer.parseInt(item.split(" ")[0]);
+
+                    pokedexEntry.putExtra("number", number);
+
+                    startActivity(pokedexEntry);
+                }
+            }
+        });
 
         listView.setAdapter(arrayAdapter);
     }
