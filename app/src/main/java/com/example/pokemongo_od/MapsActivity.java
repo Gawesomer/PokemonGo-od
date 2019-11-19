@@ -11,8 +11,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -28,18 +26,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.android.SphericalUtil;
-
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Random;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -63,14 +55,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // not granted
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private static final int DEFAULT_ZOOM = 15;
+    private static final int MAX_ZOOM = 20;
+    private static final int MIN_ZOOM = 14;
 
     private LocationCallback mLocationCallback;
 
     private Marker mPositionMarker;
 
     private WildPokemon[] wildPokemons = new WildPokemon[5];
+    private static final int encounterRadius = 20;   // Wild pokemon encounter radius in meters
+    private static final int outOfBoundsRadius = 1400;  // Wild pokemon get respawned when further
+                                                        // than this distance
+                                                        // in meters from players.
 
-    //private Pokedex dex = new Pokedex();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,15 +96,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                   mCurrentLocation.getLatitude(),
                                   mCurrentLocation.getLongitude(),
                                   results);
-                          if (results[0] <= 20) {
+                          if (results[0] <= encounterRadius) {
                               // Found Pokemon
-                              Pokedex.getInstance(activity).getPokemonByNumber(wildPokemons[i].getNumber()).setPokemonSeen();
-                              Toast myToast = Toast.makeText(activity, "Seen: " + wildPokemons[i].getNumber(), Toast.LENGTH_SHORT);
+                              wildPokemons[i].setPokemonSeen();
+                              Toast myToast = Toast.makeText(activity,
+                                      "Seen: " + wildPokemons[i].getNumber(),
+                                      Toast.LENGTH_SHORT);
                               myToast.show();
                               wildPokemons[i].close();
                               wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
                           }
-                          if (results[0] >= 1400) {
+                          if (results[0] >= outOfBoundsRadius) {
                               // Pokemon out of range
                               wildPokemons[i].close();
                               wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
@@ -145,8 +144,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setRotateGesturesEnabled(false);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
         mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.setMaxZoomPreference(20);  // TODO: Magic number
-        mMap.setMinZoomPreference(14);
+        mMap.setMaxZoomPreference(MAX_ZOOM);
+        mMap.setMinZoomPreference(MIN_ZOOM);
 
         // Create position marker
         mPositionMarker = mMap.addMarker(new MarkerOptions()

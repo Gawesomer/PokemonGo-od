@@ -20,12 +20,13 @@ public class PokedexEntry extends AppCompatActivity {
     }
 
     private void displayPokemonName(int number) {
-        TextView pokemonNameView = (TextView) findViewById(R.id.pokemonName);
-        pokemonNameView.setText(Pokedex.getInstance(this).getPokemonByNumber(number).getName());
+        TextView pokemonNameView = findViewById(R.id.pokemonName);
+        pokemonNameView.setText(Pokedex.getInstance(this).getPokemonInfo(number, DBContract.PokedexDB.POKEMON_NAME));
     }
 
     private void displayPokemonImage(int number) {
-        ImageView pokemonImageView = (ImageView) findViewById(R.id.pokemonImage);
+        number--;
+        ImageView pokemonImageView = findViewById(R.id.pokemonImage);
         int id;
         if (number < 10) {
             id = getResources().getIdentifier("tile00" + number, "drawable", getPackageName());

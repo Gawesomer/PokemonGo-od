@@ -15,15 +15,9 @@ import java.io.OutputStream;
 public class Pokedex {
 
     private static Pokedex mInstance = null;
-
-    private Pokemon[] pokemonList;
     private DBHelper dbHelper;
 
     protected Pokedex(Context context) {
-        pokemonList = new Pokemon[151];
-        for (int i = 0; i < pokemonList.length; i++) {
-            pokemonList[i] = new Pokemon(context, i+1);
-        }
         dbHelper = new DBHelper(context);
         if (!databaseExists(context, DBHelper.DATABASE_NAME)) {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -35,9 +29,6 @@ public class Pokedex {
                 Log.e("Exception: %s", e.getMessage());
             }
         }
-        Log.d("myTag", getPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE));
-        setPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE, "SEEN");
-        Log.d("myTag", getPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE));
     }
 
     // Checks if database exists
@@ -70,13 +61,6 @@ public class Pokedex {
             mInstance = new Pokedex(context);
         }
         return mInstance;
-    }
-
-    public Pokemon getPokemonByNumber(int number) {
-        if (number < 0 || number >= pokemonList.length) {
-            return null;
-        }
-        return pokemonList[number];
     }
 
     public String getPokemonInfo(Integer number, String field) {
@@ -112,7 +96,7 @@ public class Pokedex {
         return result;
     }
 
-    public void setPokemonInfo(Integer number, String field, String value) {
+    public int setPokemonInfo(Integer number, String field, String value) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // New value for one column
@@ -129,6 +113,12 @@ public class Pokedex {
                 selection,
                 selectionArgs);
 
+        return count;
+    }
+
+    public boolean wasSeen(Integer number) {
+        String catchState = getPokemonInfo(number, DBContract.PokedexDB.CATCH_STATE);
+        return !catchState.equals("UNSEEN");
     }
 
 }
