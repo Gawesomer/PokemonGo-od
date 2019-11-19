@@ -25,16 +25,7 @@ public class PokedexEntry extends AppCompatActivity {
     }
 
     private void displayPokemonImage(int number) {
-        number--;
         ImageView pokemonImageView = findViewById(R.id.pokemonImage);
-        int id;
-        if (number < 10) {
-            id = getResources().getIdentifier("tile00" + number, "drawable", getPackageName());
-        } else if (number < 100) {
-            id = getResources().getIdentifier("tile0" + number, "drawable", getPackageName());
-        } else {
-            id = getResources().getIdentifier("tile" + number, "drawable", getPackageName());
-        }
-        pokemonImageView.setImageResource(id);
+        pokemonImageView.setImageResource(Pokedex.getInstance(this).getPokemonFrontSprite(number));
     }
 }

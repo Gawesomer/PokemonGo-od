@@ -1,10 +1,6 @@
 package com.example.pokemongo_od;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.GoogleMap;

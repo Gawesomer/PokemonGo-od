@@ -15,16 +15,17 @@ import java.io.OutputStream;
 public class Pokedex {
 
     private static Pokedex mInstance = null;
+    private static Context mContext;
     private DBHelper dbHelper;
 
-    protected Pokedex(Context context) {
-        dbHelper = new DBHelper(context);
-        if (!databaseExists(context, DBHelper.DATABASE_NAME)) {
+    protected Pokedex() {
+        dbHelper = new DBHelper(mContext);
+        if (!databaseExists(DBHelper.DATABASE_NAME)) {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             try {
-                InputStream dbAssets = context.getAssets().open("Pokedex.db");
-                String dbPathName = context.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
-                copyFile(context, dbAssets, dbPathName);
+                InputStream dbAssets = mContext.getAssets().open("Pokedex.db");
+                String dbPathName = mContext.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
+                copyFile(dbAssets, dbPathName);
             } catch (IOException e) {
                 Log.e("Exception: %s", e.getMessage());
             }
@@ -32,13 +33,13 @@ public class Pokedex {
     }
 
     // Checks if database exists
-    private boolean databaseExists(Context context, String dbName) {
-        File dbFile = context.getDatabasePath(dbName);
+    private boolean databaseExists(String dbName) {
+        File dbFile = mContext.getDatabasePath(dbName);
         return dbFile.exists();
     }
 
     // Used to copy database from assets to internal storage
-    private void copyFile(Context context, InputStream toCopy, String destPath) {
+    private void copyFile(InputStream toCopy, String destPath) {
         OutputStream outputStream;
         try {
             outputStream = new FileOutputStream(destPath);
@@ -57,8 +58,9 @@ public class Pokedex {
     }
 
     public static Pokedex getInstance(Context context) {
+        mContext = context;
         if (mInstance == null) {
-            mInstance = new Pokedex(context);
+            mInstance = new Pokedex();
         }
         return mInstance;
     }
@@ -119,6 +121,22 @@ public class Pokedex {
     public boolean wasSeen(Integer number) {
         String catchState = getPokemonInfo(number, DBContract.PokedexDB.CATCH_STATE);
         return !catchState.equals("UNSEEN");
+    }
+
+    public int getPokemonFrontSprite(int number) {
+        number--;
+        String imageFileNamePrefix;
+        if (number < 10) {
+            imageFileNamePrefix = "tile00";
+        } else if (number < 100) {
+            imageFileNamePrefix = "tile0";
+        } else {
+            imageFileNamePrefix = "tile";
+        }
+        return mContext.getResources().getIdentifier(imageFileNamePrefix + number,
+                "drawable",
+                mContext.getPackageName());
+
     }
 
 }
