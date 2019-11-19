@@ -29,6 +29,7 @@ public class Pokemon {
     public Pokemon(Context context) {
         Random r = new Random();
 
+        // Random number [1-151]
         number = r.nextInt(151)+1;
 
         construct(context);
@@ -157,10 +158,7 @@ public class Pokemon {
     }
 
     public boolean wasSeen() {
-        if (mCatchState == CatchState.UNSEEN) {
-            return false;
-        }
-        return true;
+        return mCatchState != CatchState.UNSEEN;
     }
 
     public String getName() {

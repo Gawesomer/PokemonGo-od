@@ -1,5 +1,6 @@
 package com.example.pokemongo_od;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,6 +35,9 @@ public class Pokedex {
                 Log.e("Exception: %s", e.getMessage());
             }
         }
+        Log.d("myTag", getPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE));
+        setPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE, "SEEN");
+        Log.d("myTag", getPokemonInfo(1, DBContract.PokedexDB.CATCH_STATE));
     }
 
     // Checks if database exists
@@ -49,7 +53,7 @@ public class Pokedex {
             outputStream = new FileOutputStream(destPath);
 
             byte[] buffer = new byte[1024];
-            int length = 0;
+            int length;
             while ((length = toCopy.read(buffer)) > 0) {
                 outputStream.write(buffer, 0, length);
             }
@@ -106,6 +110,25 @@ public class Pokedex {
         String result = cursor.getString(colIndex);
         cursor.close();
         return result;
+    }
+
+    public void setPokemonInfo(Integer number, String field, String value) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // New value for one column
+        ContentValues values = new ContentValues();
+        values.put(field, value);
+
+        // Which row to update, based on the title
+        String selection = DBContract.PokedexDB._ID + " = ?";
+        String[] selectionArgs = { number.toString() };
+
+        int count = db.update(
+                DBContract.PokedexDB.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+
     }
 
 }
