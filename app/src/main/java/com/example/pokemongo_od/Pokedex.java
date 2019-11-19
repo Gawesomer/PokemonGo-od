@@ -1,7 +1,9 @@
 package com.example.pokemongo_od;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.BaseColumns;
 import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,8 +23,8 @@ public class Pokedex {
         for (int i = 0; i < pokemonList.length; i++) {
             pokemonList[i] = new Pokemon(context, i+1);
         }
+        dbHelper = new DBHelper(context);
         if (!databaseExists(context, DBHelper.DATABASE_NAME)) {
-            dbHelper = new DBHelper(context);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             try {
                 InputStream dbAssets = context.getAssets().open("Pokedex.db");
@@ -71,6 +73,39 @@ public class Pokedex {
             return null;
         }
         return pokemonList[number];
+    }
+
+    public String getPokemonInfo(Integer number, String field) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                BaseColumns._ID,
+                field,
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String selection = DBContract.PokedexDB._ID + " = ?";
+        String[] selectionArgs = { number.toString() };
+
+        // How you want the results sorted in the resulting Cursor
+        String sortOrder = field + " DESC";
+
+        Cursor cursor = db.query(
+                DBContract.PokedexDB.TABLE_NAME,   // The table to query
+                projection,             // The array of columns to return (pass null to get all)
+                selection,              // The columns for the WHERE clause
+                selectionArgs,          // The values for the WHERE clause
+                null,                   // don't group the rows
+                null,                   // don't filter by row groups
+                sortOrder               // The sort order
+        );
+        cursor.moveToFirst();
+        int colIndex = cursor.getColumnIndex(field);
+        String result = cursor.getString(colIndex);
+        cursor.close();
+        return result;
     }
 
 }
