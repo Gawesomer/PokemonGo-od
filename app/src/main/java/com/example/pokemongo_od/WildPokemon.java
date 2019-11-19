@@ -47,7 +47,7 @@ public class WildPokemon extends Pokemon {
                 .flat(true)
                 .icon(BitmapDescriptorFactory.fromBitmap(activity.resizeMapIcons("wild_pokemon", 100, 100)))
                 .anchor(0.5f, 0.5f)
-                //.draggable(true)      // Enables marker dragging used for debugging
+                .draggable(true)      // Enables marker dragging used for debugging
                 .position(position));
     }
 

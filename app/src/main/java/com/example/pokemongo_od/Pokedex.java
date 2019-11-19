@@ -20,6 +20,10 @@ public class Pokedex {
 
     protected Pokedex() {
         dbHelper = new DBHelper(mContext);
+        copyDB();
+    }
+
+    public void copyDB() {
         if (!databaseExists(DBHelper.DATABASE_NAME)) {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             try {
@@ -61,6 +65,13 @@ public class Pokedex {
         mContext = context;
         if (mInstance == null) {
             mInstance = new Pokedex();
+        }
+        return mInstance;
+    }
+
+    public static Pokedex getInstance() {
+        if (mInstance == null) {
+            return null;
         }
         return mInstance;
     }
