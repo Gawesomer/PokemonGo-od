@@ -31,9 +31,13 @@ public class TitleScreen extends AppCompatActivity {
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent mapIntent = new Intent(context, MapsActivity.class);
-
-                startActivity(mapIntent);
+                Intent intent;
+                if (Pokedex.getInstance(context).isTeamEmpty()) {
+                    intent = new Intent(context, ChooseStarter.class);
+                } else {
+                    intent = new Intent(context, MapsActivity.class);
+                }
+                startActivity(intent);
             }
         });
     }
