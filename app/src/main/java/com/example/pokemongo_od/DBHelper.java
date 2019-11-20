@@ -37,8 +37,12 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         try {
-            db.execSQL(STORAGE_CREATE_ENTRIES);
             db.execSQL(POKEDEX_CREATE_ENTRIES);
+        } catch (SQLiteException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
+        try {
+            db.execSQL(STORAGE_CREATE_ENTRIES);
         } catch (SQLiteException e) {
             Log.e("Exception: %s", e.getMessage());
         }

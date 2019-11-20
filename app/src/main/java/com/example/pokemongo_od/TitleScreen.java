@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -24,6 +25,7 @@ public class TitleScreen extends AppCompatActivity {
         int number = r.nextInt(151);
         ImageView pokemonImageView = findViewById(R.id.pokemonTitle);
         pokemonImageView.setImageResource(Pokedex.getInstance(this).getPokemonFrontSprite(number));
+        Log.d("myTag", "Name: "+Pokedex.getInstance(this).getPokemonInfo(number, DBContract.PokedexDB.POKEMON_NAME));
 
         // Switch to map activity onClick
         final Context context = this;
@@ -32,9 +34,11 @@ public class TitleScreen extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent;
-                if (Pokedex.getInstance(context).isTeamEmpty()) {
+                if (Pokedex.getInstance(context).teamIsEmpty()) {
+                    Log.d("myTag", "No pokemon in team");
                     intent = new Intent(context, ChooseStarter.class);
                 } else {
+                    Log.d("myTag", "Pokemon in team");
                     intent = new Intent(context, MapsActivity.class);
                 }
                 startActivity(intent);

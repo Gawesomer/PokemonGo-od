@@ -19,18 +19,22 @@ public class Pokedex {
     private DBHelper dbHelper;
 
     protected Pokedex() {
+        Log.d("myTag", "Pokedex()");
         dbHelper = new DBHelper(mContext);
         copyDB();
     }
 
     public void copyDB() {
+        Log.d("myTag", "copyDB");
         if (!databaseExists(DBHelper.DATABASE_NAME)) {
+            Log.d("myTag", "copyDB does not exist");
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             try {
                 InputStream dbAssets = mContext.getAssets().open("Pokedex.db");
                 String dbPathName = mContext.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
                 copyFile(dbAssets, dbPathName);
             } catch (IOException e) {
+                Log.d("myTag", "copyDB failed");
                 Log.e("Exception: %s", e.getMessage());
             }
         }
@@ -57,6 +61,7 @@ public class Pokedex {
             toCopy.close();
             outputStream.close();
         } catch (IOException e) {
+            Log.d("myTag", "copyFile failed");
             e.printStackTrace();
         }
     }
@@ -102,6 +107,9 @@ public class Pokedex {
                 null,                   // don't filter by row groups
                 sortOrder               // The sort order
         );
+        if (cursor.getCount() <= 0) {
+            return "";
+        }
         cursor.moveToFirst();
         int colIndex = cursor.getColumnIndex(field);
         String result = cursor.getString(colIndex);
@@ -149,7 +157,7 @@ public class Pokedex {
                 mContext.getPackageName());
     }
 
-    public boolean isTeamEmpty() {
+    public boolean teamIsEmpty() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         // Define a projection that specifies which columns from the database
@@ -169,13 +177,14 @@ public class Pokedex {
         Cursor cursor = db.query(
                 DBContract.PokemonStorage.TABLE_NAME,   // The table to query
                 projection,             // The array of columns to return (pass null to get all)
-                null,              // The columns for the WHERE clause
-                null,          // The values for the WHERE clause
+                selection,              // The columns for the WHERE clause
+                selectionArgs,          // The values for the WHERE clause
                 null,                   // don't group the rows
                 null,                   // don't filter by row groups
                 sortOrder               // The sort order
         );
-        if (cursor.getCount() == 0) {
+        Log.d("myTag", "Count: " + cursor.getCount());
+        if (cursor.getCount() <= 0) {
             return true;
         }
         return false;
