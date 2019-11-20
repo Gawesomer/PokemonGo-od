@@ -262,7 +262,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void menuMe(View view) {
         // Create and Intent to start the second activity
-        Intent menuIntent = new Intent(this, PokedexActivity.class);
+        Intent menuIntent = new Intent(this, Menu.class);
 
         startActivity(menuIntent);
     }
