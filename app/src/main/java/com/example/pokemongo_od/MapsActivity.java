@@ -100,6 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                           if (results[0] <= encounterRadius) {
                               // Found Pokemon
                               wildPokemons[i].setPokemonSeen();
+                              Pokedex.getInstance().addToStorage(wildPokemons[i]);
                               Toast myToast = Toast.makeText(activity,
                                       "Seen: " + wildPokemons[i].getNumber(),
                                       Toast.LENGTH_SHORT);

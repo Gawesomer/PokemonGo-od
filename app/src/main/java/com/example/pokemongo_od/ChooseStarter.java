@@ -28,7 +28,7 @@ public class ChooseStarter extends AppCompatActivity {
 
     private void chooseStarter(int number) {
         Pokemon starter = new Pokemon(this, number);
-        Pokedex.getInstance(this).addToStorage(starter, true);
+        Pokedex.getInstance(this).addToStorage(starter);
         Pokedex.getInstance(this).setPokemonInfo(starter.getNumber(), DBContract.PokedexDB.CATCH_STATE, "CAUGHT");
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
