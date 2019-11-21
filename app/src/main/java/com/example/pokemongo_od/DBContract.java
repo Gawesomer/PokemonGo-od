@@ -16,8 +16,8 @@ public final class DBContract {
 
     public static class PokemonStorage implements BaseColumns {
         public static final String TABLE_NAME = "pokemon_storage";
-        public static final String POKEMON_NAME = "pokemon_name";
-        public static final String INTEAM = "in_team";
+        public static final String POKEMON_NUMBER = "pokemon_number";
+        public static final String TEAM_INDEX = "team_index";
     }
 
 }

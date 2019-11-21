@@ -3,6 +3,7 @@ package com.example.pokemongo_od;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -11,6 +12,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Pokedex {
 
@@ -37,6 +40,7 @@ public class Pokedex {
                 Log.d("myTag", "copyDB failed");
                 Log.e("Exception: %s", e.getMessage());
             }
+            db.close();
         }
     }
 
@@ -158,21 +162,60 @@ public class Pokedex {
     }
 
     public boolean teamIsEmpty() {
+//        SQLiteDatabase db = dbHelper.getReadableDatabase();
+//
+//        // Define a projection that specifies which columns from the database
+//        // you will actually use after this query.
+//        String[] projection = {
+//                BaseColumns._ID,
+//                DBContract.PokemonStorage.INTEAM,
+//        };
+//
+//        // Filter results WHERE "title" = 'My Title'
+//        String selection = DBContract.PokemonStorage.INTEAM + " = ?";
+//        String[] selectionArgs = { "1" };
+//
+//        // How you want the results sorted in the resulting Cursor
+//        String sortOrder = BaseColumns._ID + " DESC";
+//
+//        Cursor cursor = db.query(
+//                DBContract.PokemonStorage.TABLE_NAME,   // The table to query
+//                projection,             // The array of columns to return (pass null to get all)
+//                selection,              // The columns for the WHERE clause
+//                selectionArgs,          // The values for the WHERE clause
+//                null,                   // don't group the rows
+//                null,                   // don't filter by row groups
+//                sortOrder               // The sort order
+//        );
+//        Log.d("myTag", "Count: " + cursor.getCount());
+//        if (cursor.getCount() <= 0) {
+//            return true;
+//        }
+//        return false;
+        Pokemon[] team = getTeam();
+        if (team[0] == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public Pokemon[] getTeam() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
                 BaseColumns._ID,
-                DBContract.PokemonStorage.INTEAM,
+                DBContract.PokemonStorage.POKEMON_NUMBER,
+                DBContract.PokemonStorage.TEAM_INDEX,
         };
 
         // Filter results WHERE "title" = 'My Title'
-        String selection = DBContract.PokemonStorage.INTEAM + " = ?";
+        String selection = DBContract.PokemonStorage.TEAM_INDEX + " = ?";
         String[] selectionArgs = { "1" };
 
         // How you want the results sorted in the resulting Cursor
-        String sortOrder = BaseColumns._ID + " DESC";
+        String sortOrder = DBContract.PokemonStorage.TEAM_INDEX + " DESC";
 
         Cursor cursor = db.query(
                 DBContract.PokemonStorage.TABLE_NAME,   // The table to query
@@ -183,11 +226,25 @@ public class Pokedex {
                 null,                   // don't filter by row groups
                 sortOrder               // The sort order
         );
-        Log.d("myTag", "Count: " + cursor.getCount());
+        Pokemon[] team = new Pokemon[6];
+        Log.d("myTag", "Count: "+cursor.getCount());
         if (cursor.getCount() <= 0) {
-            return true;
+            return team;
         }
-        return false;
+        int colIndex;
+        int pokemonNum;
+        int i = 0;
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast() && i < 6) {
+            colIndex = cursor.getColumnIndex(DBContract.PokemonStorage.POKEMON_NUMBER);
+            pokemonNum = cursor.getInt(colIndex);
+            team[i] = new Pokemon(mContext, pokemonNum);
+            i++;
+            cursor.moveToNext();
+
+        }
+        cursor.close();
+        return team;
     }
 
     public void addToStorage(Pokemon pokemon, boolean addToTeam) {
@@ -195,11 +252,11 @@ public class Pokedex {
 
         // New value for one column
         ContentValues values = new ContentValues();
-        values.put(DBContract.PokemonStorage.POKEMON_NAME, pokemon.getName());
+        values.put(DBContract.PokemonStorage.POKEMON_NUMBER, pokemon.getNumber());
         if (addToTeam) {
-            values.put(DBContract.PokemonStorage.INTEAM, 1);
+            values.put(DBContract.PokemonStorage.TEAM_INDEX, 1);
         } else {
-            values.put(DBContract.PokemonStorage.INTEAM, 0);
+            values.put(DBContract.PokemonStorage.TEAM_INDEX, 0);
         }
 
         db.insert(DBContract.PokemonStorage.TABLE_NAME, null, values);

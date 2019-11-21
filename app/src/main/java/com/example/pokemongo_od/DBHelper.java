@@ -8,7 +8,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "Pokedex.db";
 
     private static final String POKEDEX_CREATE_ENTRIES =
@@ -23,8 +23,8 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String STORAGE_CREATE_ENTRIES =
             "CREATE TABLE " + DBContract.PokemonStorage.TABLE_NAME + " (" +
                     DBContract.PokemonStorage._ID + " INTEGER PRIMARY KEY," +
-                    DBContract.PokemonStorage.POKEMON_NAME + " TEXT," +
-                    DBContract.PokemonStorage.INTEAM + " INTEGER)";
+                    DBContract.PokemonStorage.POKEMON_NUMBER + " INTEGER," +
+                    DBContract.PokemonStorage.TEAM_INDEX + " INTEGER)";
 
     private static final String STORAGE_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + DBContract.PokemonStorage.TABLE_NAME;

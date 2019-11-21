@@ -15,7 +15,7 @@ public class Menu extends AppCompatActivity {
     }
 
     public void teamButtonClicked(View view) {
-        Intent intent = new Intent(this, TitleScreen.class);
+        Intent intent = new Intent(this, Team.class);
         startActivity(intent);
     }
 
