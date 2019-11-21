@@ -15,7 +15,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
-        <activity android:name=".Team"></activity>
+        <activity android:name=".Storage"></activity>
+        <activity android:name=".Team" />
         <activity android:name=".Menu" />
         <activity android:name=".ChooseStarter" />
         <activity android:name=".MapsActivity" />

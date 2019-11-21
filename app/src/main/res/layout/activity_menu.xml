@@ -27,6 +27,19 @@
         android:text="Pokedex"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/teamButton" />
+        app:layout_constraintTop_toBottomOf="@+id/teamButton"
+        app:layout_constraintVertical_bias="0.331" />
+
+    <Button
+        android:id="@+id/storageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="storageButtonClicked"
+        android:text="Storage"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pokedexButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

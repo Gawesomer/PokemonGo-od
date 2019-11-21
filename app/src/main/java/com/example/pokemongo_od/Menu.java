@@ -23,4 +23,9 @@ public class Menu extends AppCompatActivity {
         Intent intent = new Intent(this, PokedexActivity.class);
         startActivity(intent);
     }
+
+    public void storageButtonClicked(View view) {
+        Intent intent = new Intent(this, Storage.class);
+        startActivity(intent);
+    }
 }
