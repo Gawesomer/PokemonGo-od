@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Pokedex {
 
@@ -207,6 +209,51 @@ public class Pokedex {
         }
         cursor.close();
         return team;
+    }
+
+    public List<Pokemon> getStorage() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+                BaseColumns._ID,
+                DBContract.PokemonStorage.POKEMON_NUMBER,
+                DBContract.PokemonStorage.TEAM_INDEX,
+        };
+
+        // Filter results WHERE "title" = 'My Title'
+        String selection = DBContract.PokemonStorage.TEAM_INDEX + " = ?";
+        String[] selectionArgs = { "0" };
+
+        // How you want the results sorted in the resulting Cursor
+        String sortOrder = DBContract.PokemonStorage.TEAM_INDEX + " ASC";
+
+        Cursor cursor = db.query(
+                DBContract.PokemonStorage.TABLE_NAME,   // The table to query
+                projection,             // The array of columns to return (pass null to get all)
+                selection,              // The columns for the WHERE clause
+                selectionArgs,          // The values for the WHERE clause
+                null,                   // don't group the rows
+                null,                   // don't filter by row groups
+                sortOrder               // The sort order
+        );
+        List<Pokemon> stored = new ArrayList<>();
+        if (cursor.getCount() <= 0) {
+            return stored;
+        }
+        int colIndex;
+        int pokemonNum;
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            colIndex = cursor.getColumnIndex(DBContract.PokemonStorage.POKEMON_NUMBER);
+            pokemonNum = cursor.getInt(colIndex);
+            stored.add(new Pokemon(mContext, pokemonNum));
+            cursor.moveToNext();
+
+        }
+        cursor.close();
+        return stored;
     }
 
     public void addToStorage(Pokemon pokemon) {
