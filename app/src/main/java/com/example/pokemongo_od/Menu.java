@@ -8,10 +8,15 @@ import android.view.View;
 
 public class Menu extends AppCompatActivity {
 
+    private Model model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+
+        model = Model.getInstance();
+        model.setCurrActivity(this);
     }
 
     public void teamButtonClicked(View view) {
@@ -28,4 +33,5 @@ public class Menu extends AppCompatActivity {
         Intent intent = new Intent(this, Storage.class);
         startActivity(intent);
     }
+
 }

@@ -2,10 +2,7 @@ package com.example.pokemongo_od;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -18,7 +15,7 @@ public class Team extends AppCompatActivity {
 
         final ListView listView = findViewById(R.id.teamView);
         String[] list = new String[6];
-        Pokemon[] team = Pokedex.getInstance().getTeam();
+        Pokemon[] team = Model.getInstance().getTeam();
         for (int i = 0; i < list.length; i++) {
             if (team[i] != null) {
                 list[i] = team[i].getName();

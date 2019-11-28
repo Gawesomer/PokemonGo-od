@@ -8,10 +8,15 @@ import android.widget.TextView;
 
 public class PokedexEntry extends AppCompatActivity {
 
+    private Model model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pokedex_entry);
+
+        model = Model.getInstance();
+        model.setCurrActivity(this);
 
         int number = getIntent().getIntExtra("number", 0);
 
@@ -21,11 +26,11 @@ public class PokedexEntry extends AppCompatActivity {
 
     private void displayPokemonName(int number) {
         TextView pokemonNameView = findViewById(R.id.pokemonName);
-        pokemonNameView.setText(Pokedex.getInstance(this).getPokemonInfo(number, DBContract.PokedexDB.POKEMON_NAME));
+        pokemonNameView.setText(model.getPokemonInfo(number, DBContract.PokedexDB.POKEMON_NAME));
     }
 
     private void displayPokemonImage(int number) {
         ImageView pokemonImageView = findViewById(R.id.pokemonImage);
-        pokemonImageView.setImageResource(Pokedex.getInstance(this).getPokemonFrontSprite(number));
+        pokemonImageView.setImageResource(model.getPokemonFrontSprite(number));
     }
 }

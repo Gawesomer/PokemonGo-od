@@ -3,10 +3,11 @@ package com.example.pokemongo_od;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -19,24 +20,26 @@ public class TitleScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title_screen);
 
+        final Model model = Model.getInstance(this);
+
         Random r = new Random();
 
         // Display random pokemon
         int number = r.nextInt(151);
         ImageView pokemonImageView = findViewById(R.id.pokemonTitle);
-        pokemonImageView.setImageResource(Pokedex.getInstance(this).getPokemonFrontSprite(number));
+        pokemonImageView.setImageResource(model.getPokemonFrontSprite(number));
 
         // Switch to map activity onClick
-        final Context context = this;
+        final Activity activity = this;
         ConstraintLayout layout = findViewById(R.id.titleLayout);
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent;
-                if (Pokedex.getInstance(context).teamIsEmpty()) {
-                    intent = new Intent(context, ChooseStarter.class);
+                if (model.isFirstRun()) {
+                    intent = new Intent(activity, ChooseStarter.class);
                 } else {
-                    intent = new Intent(context, MapsActivity.class);
+                    intent = new Intent(activity, MapsActivity.class);
                 }
                 startActivity(intent);
             }

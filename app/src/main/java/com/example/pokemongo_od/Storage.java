@@ -2,10 +2,7 @@ package com.example.pokemongo_od;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -19,7 +16,7 @@ public class Storage extends AppCompatActivity {
         setContentView(R.layout.activity_storage);
 
         final ListView storageListView = findViewById(R.id.storageListView);
-        List<Pokemon> stored = Pokedex.getInstance().getStorage();
+        List<Pokemon> stored = Model.getInstance().getStorage();
         String[] storageList = new String[stored.size()];
         for (int i = 0; i < storageList.length; i++) {
             storageList[i] = stored.get(i).getName();
@@ -31,7 +28,7 @@ public class Storage extends AppCompatActivity {
 
         final ListView teamListView = findViewById(R.id.teamListView);
         String[] teamList = new String[6];
-        Pokemon[] team = Pokedex.getInstance().getTeam();
+        Pokemon[] team = Model.getInstance().getTeam();
         for (int i = 0; i < teamList.length; i++) {
             if (team[i] != null) {
                 teamList[i] = team[i].getName();

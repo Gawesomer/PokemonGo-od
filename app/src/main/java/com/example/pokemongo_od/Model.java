@@ -1,11 +1,22 @@
 package com.example.pokemongo_od;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationManager;
 import android.provider.BaseColumns;
 import android.util.Log;
+
+import com.google.android.gms.maps.model.LatLng;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,27 +25,68 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Pokedex {
+// DONE: Refactor: https://www.vogella.com/tutorials/DesignPatternObserver/article.html
 
-    private static Pokedex mInstance = null;
-    private static Context mContext;
+public class Model {
+
+    private static Model mInstance = null;
+    private static Activity currActivity;
+    private boolean firstRun;
+    private Location currLocation, defaultLocation;
+    // A default location (Sydney, Australia) and default zoom to use when location permission is
+    // not granted
+    private final LatLng defaultCoordinates = new LatLng(-33.8523341, 151.2106085);
+    private boolean locationPermissionGranted = false;
+    private WildPokemon[] wildPokemons;
+    private final int numWildPokemon = 5;
+    private Pokemon pokemonEncountered;
+    private int firstAvailableTeamSlot = 0;
     private DBHelper dbHelper;
-    private int teamFirstFreeIndex = 1;
+    private SQLiteDatabase db;
+    private List<PropertyChangeListener> listeners = new ArrayList<>();
+    public enum Properties { CURRLOCATION, WILDPOKEMON, ACTIVITY }
 
-    protected Pokedex() {
-        dbHelper = new DBHelper(mContext);
+
+    protected Model() {
+        dbHelper = new DBHelper(currActivity);
         copyDB();
+
+        db = dbHelper.getWritableDatabase();
+
+        wildPokemons = new WildPokemon[numWildPokemon];
+
+        defaultLocation = new Location(LocationManager.GPS_PROVIDER);
+        defaultLocation.setLatitude(defaultCoordinates.latitude);
+        defaultLocation.setLongitude(defaultCoordinates.longitude);
+
+        currLocation = defaultLocation;
+
+        if (teamIsEmpty()) {
+            firstRun = true;
+            firstAvailableTeamSlot = 1;
+        } else {
+            firstRun = false;
+            Pokemon[] team = getTeam();
+            for (int i = 0; i < team.length; i++) {
+                if (team[i] == null) {
+                    firstAvailableTeamSlot = i+1;
+                }
+            }
+            if (firstAvailableTeamSlot == 0) {
+                firstAvailableTeamSlot = 7;
+            }
+        }
     }
 
-    public void copyDB() {
+    private void copyDB() {
         if (!databaseExists(DBHelper.DATABASE_NAME)) {
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db = dbHelper.getWritableDatabase();
             try {
-                InputStream dbAssets = mContext.getAssets().open("Pokedex.db");
-                String dbPathName = mContext.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
+                InputStream dbAssets = currActivity.getAssets().open("Pokedex.db");
+                String dbPathName = currActivity.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
                 copyFile(dbAssets, dbPathName);
             } catch (IOException e) {
-                Log.e("Exception: %s", e.getMessage());
+                e.printStackTrace();
             }
             db.close();
         }
@@ -42,7 +94,7 @@ public class Pokedex {
 
     // Checks if database exists
     private boolean databaseExists(String dbName) {
-        File dbFile = mContext.getDatabasePath(dbName);
+        File dbFile = currActivity.getDatabasePath(dbName);
         return dbFile.exists();
     }
 
@@ -65,24 +117,94 @@ public class Pokedex {
         }
     }
 
-    public static Pokedex getInstance(Context context) {
-        mContext = context;
+    public static Model getInstance(Activity activity) {
+        currActivity = activity;
         if (mInstance == null) {
-            mInstance = new Pokedex();
+            mInstance = new Model();
+        }
+        Controller.getInstance();
+        return mInstance;
+    }
+
+    public static Model getInstance() {
+        if (mInstance == null) {
+            mInstance = new Model();
         }
         return mInstance;
     }
 
-    public static Pokedex getInstance() {
-        if (mInstance == null) {
-            return null;
+    public Activity getCurrActivity() {
+        return currActivity;
+    }
+
+    public void setCurrActivity(Activity newActivity) {
+        Log.d("myTag", "Model: setCurrActivity()");
+        notifyListeners(Properties.ACTIVITY.toString(), currActivity, newActivity);
+        currActivity = newActivity;
+    }
+
+    public boolean isFirstRun() {
+        return firstRun;
+    }
+
+    public Location getCurrLocation() {
+        return currLocation;
+    }
+
+    public void setCurrLocation(Location newLocation) {
+        if (newLocation != null) {
+            notifyListeners(Properties.CURRLOCATION.toString(), currLocation, newLocation);
+            currLocation = newLocation;
         }
-        return mInstance;
+    }
+
+    public Location getDefaultLocation() {
+        return defaultLocation;
+    }
+
+    public boolean locationPermissionGranted() {
+        return locationPermissionGranted;
+    }
+
+    public void setLocationPermissionGranted(boolean newPermission) {
+        locationPermissionGranted = newPermission;
+    }
+
+    public WildPokemon[] getWildPokemons() {
+        return wildPokemons;
+    }
+
+    public void setWildPokemonCoordinates(int index, LatLng newCoordinates) {
+        wildPokemons[index].setCoordinates(newCoordinates);
+    }
+
+    public int getNumWildPokemon() {
+        return numWildPokemon;
+    }
+
+    public void respawnWildPokemon(int index) {
+        wildPokemons[index] = new WildPokemon();
+        notifyListeners(Properties.WILDPOKEMON.toString(), index, index);
+    }
+
+    public Bitmap resizeMapIcons(String iconName, int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(currActivity.getResources(),
+                currActivity.getResources().getIdentifier(iconName, "drawable", currActivity.getPackageName()));
+        return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+    }
+
+    private void notifyListeners(String property, Object oldValue, Object newValue) {
+        for (PropertyChangeListener listener : listeners) {
+            Log.d("myTag", "\t- " + listener.toString());
+            listener.propertyChange(new PropertyChangeEvent(this, property, oldValue, newValue));
+        }
+    }
+
+    public void addChangeListener(PropertyChangeListener listener) {
+        listeners.add(listener);
     }
 
     public String getPokemonInfo(Integer number, String field) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -117,8 +239,6 @@ public class Pokedex {
     }
 
     public int setPokemonInfo(Integer number, String field, String value) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         // New value for one column
         ContentValues values = new ContentValues();
         values.put(field, value);
@@ -127,13 +247,11 @@ public class Pokedex {
         String selection = DBContract.PokedexDB._ID + " = ?";
         String[] selectionArgs = { number.toString() };
 
-        int count = db.update(
+        return db.update(
                 DBContract.PokedexDB.TABLE_NAME,
                 values,
                 selection,
                 selectionArgs);
-
-        return count;
     }
 
     public boolean wasSeen(Integer number) {
@@ -151,22 +269,17 @@ public class Pokedex {
         } else {
             imageFileNamePrefix = "tile";
         }
-        return mContext.getResources().getIdentifier(imageFileNamePrefix + number,
+        return currActivity.getResources().getIdentifier(imageFileNamePrefix + number,
                 "drawable",
-                mContext.getPackageName());
+                currActivity.getPackageName());
     }
 
-    public boolean teamIsEmpty() {
+    private boolean teamIsEmpty() {
         Pokemon[] team = getTeam();
-        if (team[0] == null) {
-            return true;
-        }
-        return false;
+        return team[0] == null;
     }
 
     public Pokemon[] getTeam() {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -202,7 +315,7 @@ public class Pokedex {
         while (!cursor.isAfterLast() && i < 6) {
             colIndex = cursor.getColumnIndex(DBContract.PokemonStorage.POKEMON_NUMBER);
             pokemonNum = cursor.getInt(colIndex);
-            team[i] = new Pokemon(mContext, pokemonNum);
+            team[i] = new Pokemon(pokemonNum);
             i++;
             cursor.moveToNext();
 
@@ -212,8 +325,6 @@ public class Pokedex {
     }
 
     public List<Pokemon> getStorage() {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -248,7 +359,7 @@ public class Pokedex {
         while (!cursor.isAfterLast()) {
             colIndex = cursor.getColumnIndex(DBContract.PokemonStorage.POKEMON_NUMBER);
             pokemonNum = cursor.getInt(colIndex);
-            stored.add(new Pokemon(mContext, pokemonNum));
+            stored.add(new Pokemon(pokemonNum));
             cursor.moveToNext();
 
         }
@@ -257,15 +368,12 @@ public class Pokedex {
     }
 
     public void addToStorage(Pokemon pokemon) {
-        Log.d("myTag", "Adding to storage: "+pokemon.getName());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
         // New value for one column
         ContentValues values = new ContentValues();
         values.put(DBContract.PokemonStorage.POKEMON_NUMBER, pokemon.getNumber());
-        if (teamFirstFreeIndex <= 6) {
-            values.put(DBContract.PokemonStorage.TEAM_INDEX, teamFirstFreeIndex);
-            teamFirstFreeIndex++;
+        if (firstAvailableTeamSlot <= 6) {
+            values.put(DBContract.PokemonStorage.TEAM_INDEX, firstAvailableTeamSlot);
+            firstAvailableTeamSlot++;
         } else {
             values.put(DBContract.PokemonStorage.TEAM_INDEX, 0);
         }

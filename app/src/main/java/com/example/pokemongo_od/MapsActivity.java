@@ -34,40 +34,25 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+
+public class MapsActivity extends FragmentActivity implements PropertyChangeListener, OnMapReadyCallback {
 
     // Future Reference: https://stackoverflow.com/questions/29352051/keep-map-centered-regardless-of-where-you-pinch-zoom-on-android
 
+    private Model model;
     private GoogleMap mMap;
 
     private static final String TAG = MapsActivity.class.getSimpleName();
 
-    private boolean mLocationPermissionGranted;
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location mCurrentLocation;
-
-    private LocationRequest mLocationRequest;
-    private static final long UPDATE_INTERVAL = 1000 * 2;
-
-    // A default location (Sydney, Australia) and default zoom to use when location permission is
-    // not granted
-    private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private static final int DEFAULT_ZOOM = 15;
     private static final int MAX_ZOOM = 20;
     private static final int MIN_ZOOM = 14;
 
-    private LocationCallback mLocationCallback;
-
     private Marker mPositionMarker;
-
-    private WildPokemon[] wildPokemons = new WildPokemon[5];
-    private static final int encounterRadius = 20;   // Wild pokemon encounter radius in meters
-    private static final int outOfBoundsRadius = 1400;  // Wild pokemon get respawned when further
-                                                        // than this distance
-                                                        // in meters from players.
+    private Marker[] wildPokemonMarkers;
 
 
     @Override
@@ -75,56 +60,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        // Construct a FusedLocationProviderClient
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        final MapsActivity activity = this;
-        mLocationCallback = new LocationCallback() {
-          public void onLocationResult(LocationResult locationResult) {
-              if (locationResult == null) {
-                  return;
-              }
-              for (Location location : locationResult.getLocations()) {
-                  // Update UI with location data
-                  mCurrentLocation = location;
-
-                  for (int i = 0; i < wildPokemons.length; i++) {
-                      if (wildPokemons[i] != null) {
-                          float[] results = new float[1];
-                          Location.distanceBetween(
-                                  wildPokemons[i].getPosition().latitude,
-                                  wildPokemons[i].getPosition().longitude,
-                                  mCurrentLocation.getLatitude(),
-                                  mCurrentLocation.getLongitude(),
-                                  results);
-                          if (results[0] <= encounterRadius) {
-                              // Found Pokemon
-                              wildPokemons[i].setPokemonSeen();
-                              Pokedex.getInstance().addToStorage(wildPokemons[i]);
-                              Toast myToast = Toast.makeText(activity,
-                                      "Seen: " + wildPokemons[i].getNumber(),
-                                      Toast.LENGTH_SHORT);
-                              myToast.show();
-                              wildPokemons[i].close();
-                              wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
-                          }
-                          if (results[0] >= outOfBoundsRadius) {
-                              // Pokemon out of range
-                              wildPokemons[i].close();
-                              wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
-                          }
-                      }
-                  }
-
-                  updateLocationUI();
-              }
-          }
-        };
+        model = Model.getInstance();
+        model.setCurrActivity(this);
+        model.addChangeListener(this);
+        wildPokemonMarkers = new Marker[model.getNumWildPokemon()];
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+        if (event.getPropertyName().equals(Model.Properties.CURRLOCATION.toString())) {
+            updateLocationUI();
+        } else if (event.getPropertyName().equals(Model.Properties.WILDPOKEMON.toString())) {
+            int index = (Integer)event.getNewValue();
+            if (wildPokemonMarkers[index] != null) {
+                wildPokemonMarkers[index].remove();
+            }
+            wildPokemonMarkers[index] = mMap.addMarker(new MarkerOptions()
+                    .flat(true)
+                    .icon(BitmapDescriptorFactory.fromBitmap(model.resizeMapIcons("wild_pokemon", 100, 100)))
+                    .anchor(0.5f, 0.5f)
+                    .draggable(true)      // Enables marker dragging used for debugging
+                    .position( (model.getWildPokemons()[index]).getCoordinates() ));
+        }
+        // TODO: Switch to a switch
+//        switch (event.getPropertyName()) {
+//            case Model.Properties.CURRLOCATION.toString():
+//                updateLocationUI();
+//                break;
+//            default:
+//        }
     }
 
 
@@ -149,20 +120,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMaxZoomPreference(MAX_ZOOM);
         mMap.setMinZoomPreference(MIN_ZOOM);
 
+        // Enables marker dragging used for debugging
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                for (int i = 0; i < wildPokemonMarkers.length; i++) {
+                    if (marker.equals(wildPokemonMarkers[i])) {
+                        model.setWildPokemonCoordinates(i, marker.getPosition());
+                    }
+                }
+            }
+        });
+
         // Create position marker
         mPositionMarker = mMap.addMarker(new MarkerOptions()
                 .flat(true)
-                .icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("red_sprite", 100, 100)))
+                .icon(BitmapDescriptorFactory.fromBitmap(Model.getInstance().resizeMapIcons("red_sprite", 100, 100)))
                 .anchor(0.5f, 0.5f)
-                .position(mDefaultLocation));
+                .position(new
+                        LatLng(model.getCurrLocation().getLatitude(), model.getCurrLocation().getLongitude())));
 
         // Turn on the My Location layer and the related control on the map
         updateLocationUI();
 
-        // Get the current location of the device and set the position of the map
-        getDeviceLocation();
-
-        startLocationUpdates();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(model.getCurrLocation().getLatitude(),
+                        model.getCurrLocation().getLongitude()), DEFAULT_ZOOM));
     }
 
 
@@ -171,95 +164,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
         try {
-            if (mLocationPermissionGranted) {
-                if (mCurrentLocation != null) {
+            if (model.locationPermissionGranted()) {
+                if (model.getCurrLocation() != null) {
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(mCurrentLocation.getLatitude(),
-                                    mCurrentLocation.getLongitude()), mMap.getCameraPosition().zoom));
+                            new LatLng(model.getCurrLocation().getLatitude(),
+                                    model.getCurrLocation().getLongitude()), mMap.getCameraPosition().zoom));
                     mPositionMarker.setPosition(new
-                            LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()));
+                            LatLng(model.getCurrLocation().getLatitude(), model.getCurrLocation().getLongitude()));
                 }
             } else {
                 mMap.setMyLocationEnabled(false);
                 mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                mCurrentLocation = null;
-                getLocationPermission();
             }
         } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    public Bitmap resizeMapIcons(String iconName, int width, int height){
-        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),
-                getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-        return resizedBitmap;
-    }
-
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mLocationPermissionGranted = true;
-        } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    private void getDeviceLocation() {
-        /**
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (mLocationPermissionGranted) {
-                Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-                final MapsActivity activity = this;
-                locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device
-                            mCurrentLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mCurrentLocation.getLatitude(),
-                                            mCurrentLocation.getLongitude()), DEFAULT_ZOOM));
-                            for (int i = 0; i < wildPokemons.length; i++) {
-                                wildPokemons[i] = new WildPokemon(activity, mMap, mCurrentLocation);
-                            }
-                        } else {
-                            Log.d(TAG, "Current location is null. Using defaults.");
-                            Log.e(TAG, "Exception: %s", task.getException());
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation,
-                                    DEFAULT_ZOOM));
-                            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-                        }
-                    }
-                });
-            }
-        } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    private void startLocationUpdates() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-
-        mFusedLocationProviderClient.requestLocationUpdates(mLocationRequest,
-                mLocationCallback,
-                Looper.getMainLooper());
-
-    }
 
     public void menuMe(View view) {
         // Create and Intent to start the second activity
