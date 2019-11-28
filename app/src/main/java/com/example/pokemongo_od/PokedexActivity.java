@@ -18,7 +18,6 @@ public class PokedexActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pokedex);
 
         model = Model.getInstance();
-        model.setCurrActivity(this);
 
         final ListView listView = findViewById(R.id.listview);
         String[] list = new String[151];

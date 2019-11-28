@@ -172,8 +172,7 @@ public class Controller implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         if (event.getPropertyName().equals(Model.Properties.ACTIVITY.toString())) {
-            Activity newActivity = (Activity)event.getNewValue();
-            if (newActivity.getLocalClassName().equals(MapsActivity.class.getSimpleName())) {
+            if (model.getCurrActivity().getLocalClassName().equals(MapsActivity.class.getSimpleName())) {
                 mapController();
             }
         }

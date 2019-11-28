@@ -10,13 +10,17 @@ import java.util.List;
 
 public class Storage extends AppCompatActivity {
 
+    private Model model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
 
+        model = Model.getInstance();
+
         final ListView storageListView = findViewById(R.id.storageListView);
-        List<Pokemon> stored = Model.getInstance().getStorage();
+        List<Pokemon> stored = model.getStorage();
         String[] storageList = new String[stored.size()];
         for (int i = 0; i < storageList.length; i++) {
             storageList[i] = stored.get(i).getName();
@@ -28,7 +32,7 @@ public class Storage extends AppCompatActivity {
 
         final ListView teamListView = findViewById(R.id.teamListView);
         String[] teamList = new String[6];
-        Pokemon[] team = Model.getInstance().getTeam();
+        Pokemon[] team = model.getTeam();
         for (int i = 0; i < teamList.length; i++) {
             if (team[i] != null) {
                 teamList[i] = team[i].getName();

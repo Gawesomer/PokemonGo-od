@@ -61,7 +61,6 @@ public class MapsActivity extends FragmentActivity implements PropertyChangeList
         setContentView(R.layout.activity_maps);
 
         model = Model.getInstance();
-        model.setCurrActivity(this);
         model.addChangeListener(this);
         wildPokemonMarkers = new Marker[model.getNumWildPokemon()];
 

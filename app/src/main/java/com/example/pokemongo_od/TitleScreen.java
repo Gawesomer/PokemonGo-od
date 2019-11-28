@@ -18,11 +18,12 @@ public class TitleScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title_screen);
 
-        CurrentApplication currentApplication = CurrentApplication.getInstance();
+        CurrentApplication currentApplication = new CurrentApplication();
         currentApplication.setCurrActivity(this);
         getApplication().registerActivityLifecycleCallbacks(currentApplication);
 
-        final Model model = Model.getInstance(this);
+        final Model model = Model.getInstance();
+        model.init(currentApplication);
 
         Random r = new Random();
 

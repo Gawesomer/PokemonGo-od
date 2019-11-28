@@ -16,7 +16,6 @@ public class PokedexEntry extends AppCompatActivity {
         setContentView(R.layout.activity_pokedex_entry);
 
         model = Model.getInstance();
-        model.setCurrActivity(this);
 
         int number = getIntent().getIntExtra("number", 0);
 

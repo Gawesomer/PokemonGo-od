@@ -3,32 +3,22 @@ package com.example.pokemongo_od;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class CurrentApplication implements Application.ActivityLifecycleCallbacks {
 
-    private static CurrentApplication mInstance;
     private Activity currActivity;
 
-    private CurrentApplication() {
-
+    CurrentApplication() {
     }
 
-    public static CurrentApplication getInstance() {
-        if (mInstance == null) {
-            mInstance = new CurrentApplication();
-        }
-        return mInstance;
-    }
-
-    public Activity getCurrActivity() {
+    Activity getCurrActivity() {
         return currActivity;
     }
 
-    public void setCurrActivity(Activity activity) {
+    void setCurrActivity(Activity activity) {
         currActivity = activity;
     }
 
@@ -39,13 +29,13 @@ public class CurrentApplication implements Application.ActivityLifecycleCallback
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
-        Log.d("myTag", "CurrentApplication: " + activity.toString());
+        Model.getInstance().notifyActivityChange();
         currActivity = activity;
     }
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
-        Log.d("myTag", "CurrentApplication: " + activity.toString());
+        Model.getInstance().notifyActivityChange();
         currActivity = activity;
     }
 

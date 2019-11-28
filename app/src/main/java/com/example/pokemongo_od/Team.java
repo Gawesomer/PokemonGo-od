@@ -8,14 +8,18 @@ import android.widget.ListView;
 
 public class Team extends AppCompatActivity {
 
+    private Model model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_team);
 
+        model = Model.getInstance();
+
         final ListView listView = findViewById(R.id.teamView);
         String[] list = new String[6];
-        Pokemon[] team = Model.getInstance().getTeam();
+        Pokemon[] team = model.getTeam();
         for (int i = 0; i < list.length; i++) {
             if (team[i] != null) {
                 list[i] = team[i].getName();

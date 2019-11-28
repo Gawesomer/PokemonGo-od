@@ -26,13 +26,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-// DONE: Refactor: https://www.vogella.com/tutorials/DesignPatternObserver/article.html
 
 public class Model {
 
-    // TODO: https://stackoverflow.com/questions/11411395/how-to-get-current-foreground-activity-context-in-android
     private static Model mInstance = null;
-    private static Activity currActivity;
     private CurrentApplication currentApplication;
     private boolean firstRun;
     private Location currLocation, defaultLocation;
@@ -48,11 +45,15 @@ public class Model {
     private SQLiteDatabase db;
     private List<PropertyChangeListener> listeners = new ArrayList<>();
     public enum Properties { CURRLOCATION, WILDPOKEMON, ACTIVITY }
-    public enum ActivityNames { TITLE, MAP, MENU, TEAM, POKEDEX, STORAGE }
+    public enum ActivityNames { TITLE, MAP, MENU, TEAM, POKEDEX, STORAGE, STARTER, POKEDEX_ENTRY }
 
 
     protected Model() {
-        currentApplication = CurrentApplication.getInstance();
+
+    }
+
+    void init(CurrentApplication newCurrentApplication) {
+        currentApplication = newCurrentApplication;
 
         dbHelper = new DBHelper(currentApplication.getCurrActivity());
         copyDB();
@@ -123,78 +124,68 @@ public class Model {
         }
     }
 
-    public static Model getInstance(Activity activity) {
-        currActivity = activity;
-        if (mInstance == null) {
-            mInstance = new Model();
-        }
-        Controller.getInstance();
-        return mInstance;
-    }
-
     public static Model getInstance() {
         if (mInstance == null) {
             mInstance = new Model();
+            Controller.getInstance();
         }
         return mInstance;
     }
 
-    public Activity getCurrActivity() {
+    Activity getCurrActivity() {
         return currentApplication.getCurrActivity();
     }
 
-    public void setCurrActivity(Activity newActivity) {
-        Log.d("myTag", "Model: setCurrActivity()");
-        notifyListeners(Properties.ACTIVITY.toString(), currActivity, newActivity);
-        currActivity = newActivity;
+    void notifyActivityChange() {
+        notifyListeners(Properties.ACTIVITY.toString(), null, null);
     }
 
-    public boolean isFirstRun() {
+    boolean isFirstRun() {
         return firstRun;
     }
 
-    public Location getCurrLocation() {
+    Location getCurrLocation() {
         return currLocation;
     }
 
-    public void setCurrLocation(Location newLocation) {
+    void setCurrLocation(Location newLocation) {
         if (newLocation != null) {
             notifyListeners(Properties.CURRLOCATION.toString(), currLocation, newLocation);
             currLocation = newLocation;
         }
     }
 
-    public Location getDefaultLocation() {
+    Location getDefaultLocation() {
         return defaultLocation;
     }
 
-    public boolean locationPermissionGranted() {
+    boolean locationPermissionGranted() {
         return locationPermissionGranted;
     }
 
-    public void setLocationPermissionGranted(boolean newPermission) {
+    void setLocationPermissionGranted(boolean newPermission) {
         locationPermissionGranted = newPermission;
     }
 
-    public WildPokemon[] getWildPokemons() {
+    WildPokemon[] getWildPokemons() {
         return wildPokemons;
     }
 
-    public void setWildPokemonCoordinates(int index, LatLng newCoordinates) {
+    void setWildPokemonCoordinates(int index, LatLng newCoordinates) {
         wildPokemons[index].setCoordinates(newCoordinates);
     }
 
-    public int getNumWildPokemon() {
+    int getNumWildPokemon() {
         return numWildPokemon;
     }
 
-    public void respawnWildPokemon(int index) {
+    void respawnWildPokemon(int index) {
         wildPokemons[index] = new WildPokemon();
         notifyListeners(Properties.WILDPOKEMON.toString(), index, index);
     }
 
-    public Bitmap resizeMapIcons(String iconName, int width, int height){
-        Bitmap imageBitmap = BitmapFactory.decodeResource(currActivity.getResources(),
+    Bitmap resizeMapIcons(String iconName, int width, int height){
+        Bitmap imageBitmap = BitmapFactory.decodeResource(currentApplication.getCurrActivity().getResources(),
                 currentApplication.getCurrActivity().getResources()
                         .getIdentifier(iconName, "drawable", currentApplication.getCurrActivity().getPackageName()));
         return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
@@ -207,11 +198,11 @@ public class Model {
         }
     }
 
-    public void addChangeListener(PropertyChangeListener listener) {
+    void addChangeListener(PropertyChangeListener listener) {
         listeners.add(listener);
     }
 
-    public String getPokemonInfo(Integer number, String field) {
+    String getPokemonInfo(Integer number, String field) {
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -245,7 +236,7 @@ public class Model {
         return result;
     }
 
-    public int setPokemonInfo(Integer number, String field, String value) {
+    int setPokemonInfo(Integer number, String field, String value) {
         // New value for one column
         ContentValues values = new ContentValues();
         values.put(field, value);
@@ -261,12 +252,12 @@ public class Model {
                 selectionArgs);
     }
 
-    public boolean wasSeen(Integer number) {
+    boolean wasSeen(Integer number) {
         String catchState = getPokemonInfo(number, DBContract.PokedexDB.CATCH_STATE);
         return !catchState.equals("UNSEEN");
     }
 
-    public int getPokemonFrontSprite(int number) {
+    int getPokemonFrontSprite(int number) {
         number--;
         String imageFileNamePrefix;
         if (number < 10) {
@@ -286,7 +277,7 @@ public class Model {
         return team[0] == null;
     }
 
-    public Pokemon[] getTeam() {
+    Pokemon[] getTeam() {
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -331,7 +322,7 @@ public class Model {
         return team;
     }
 
-    public List<Pokemon> getStorage() {
+    List<Pokemon> getStorage() {
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
@@ -374,7 +365,7 @@ public class Model {
         return stored;
     }
 
-    public void addToStorage(Pokemon pokemon) {
+    void addToStorage(Pokemon pokemon) {
         // New value for one column
         ContentValues values = new ContentValues();
         values.put(DBContract.PokemonStorage.POKEMON_NUMBER, pokemon.getNumber());

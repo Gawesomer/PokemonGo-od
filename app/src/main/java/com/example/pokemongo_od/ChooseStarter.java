@@ -16,7 +16,6 @@ public class ChooseStarter extends AppCompatActivity {
         setContentView(R.layout.activity_choose_starter);
 
         model = Model.getInstance();
-        model.setCurrActivity(this);
     }
 
     public void chooseBulbasaur(View view) {

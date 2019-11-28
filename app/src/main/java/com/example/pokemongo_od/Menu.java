@@ -16,7 +16,6 @@ public class Menu extends AppCompatActivity {
         setContentView(R.layout.activity_menu);
 
         model = Model.getInstance();
-        model.setCurrActivity(this);
     }
 
     public void teamButtonClicked(View view) {
