@@ -1,6 +1,7 @@
 package com.example.pokemongo_od;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -29,8 +30,10 @@ import java.util.List;
 
 public class Model {
 
+    // TODO: https://stackoverflow.com/questions/11411395/how-to-get-current-foreground-activity-context-in-android
     private static Model mInstance = null;
     private static Activity currActivity;
+    private CurrentApplication currentApplication;
     private boolean firstRun;
     private Location currLocation, defaultLocation;
     // A default location (Sydney, Australia) and default zoom to use when location permission is
@@ -45,10 +48,13 @@ public class Model {
     private SQLiteDatabase db;
     private List<PropertyChangeListener> listeners = new ArrayList<>();
     public enum Properties { CURRLOCATION, WILDPOKEMON, ACTIVITY }
+    public enum ActivityNames { TITLE, MAP, MENU, TEAM, POKEDEX, STORAGE }
 
 
     protected Model() {
-        dbHelper = new DBHelper(currActivity);
+        currentApplication = CurrentApplication.getInstance();
+
+        dbHelper = new DBHelper(currentApplication.getCurrActivity());
         copyDB();
 
         db = dbHelper.getWritableDatabase();
@@ -82,8 +88,8 @@ public class Model {
         if (!databaseExists(DBHelper.DATABASE_NAME)) {
             db = dbHelper.getWritableDatabase();
             try {
-                InputStream dbAssets = currActivity.getAssets().open("Pokedex.db");
-                String dbPathName = currActivity.getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
+                InputStream dbAssets = currentApplication.getCurrActivity().getAssets().open("Pokedex.db");
+                String dbPathName = currentApplication.getCurrActivity().getApplicationInfo().dataDir + "/databases/" + DBHelper.DATABASE_NAME;
                 copyFile(dbAssets, dbPathName);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -94,7 +100,7 @@ public class Model {
 
     // Checks if database exists
     private boolean databaseExists(String dbName) {
-        File dbFile = currActivity.getDatabasePath(dbName);
+        File dbFile = currentApplication.getCurrActivity().getDatabasePath(dbName);
         return dbFile.exists();
     }
 
@@ -134,7 +140,7 @@ public class Model {
     }
 
     public Activity getCurrActivity() {
-        return currActivity;
+        return currentApplication.getCurrActivity();
     }
 
     public void setCurrActivity(Activity newActivity) {
@@ -189,7 +195,8 @@ public class Model {
 
     public Bitmap resizeMapIcons(String iconName, int width, int height){
         Bitmap imageBitmap = BitmapFactory.decodeResource(currActivity.getResources(),
-                currActivity.getResources().getIdentifier(iconName, "drawable", currActivity.getPackageName()));
+                currentApplication.getCurrActivity().getResources()
+                        .getIdentifier(iconName, "drawable", currentApplication.getCurrActivity().getPackageName()));
         return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
     }
 
@@ -269,9 +276,9 @@ public class Model {
         } else {
             imageFileNamePrefix = "tile";
         }
-        return currActivity.getResources().getIdentifier(imageFileNamePrefix + number,
+        return currentApplication.getCurrActivity().getResources().getIdentifier(imageFileNamePrefix + number,
                 "drawable",
-                currActivity.getPackageName());
+                currentApplication.getCurrActivity().getPackageName());
     }
 
     private boolean teamIsEmpty() {
