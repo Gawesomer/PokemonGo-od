@@ -33,7 +33,7 @@ public class ChooseStarter extends AppCompatActivity {
     private void chooseStarter(int number) {
         Pokemon starter = new Pokemon(number);
         model.addToStorage(starter);
-        model.setPokemonInfo(starter.getNumber(), DBContract.PokedexDB.CATCH_STATE, "CAUGHT");
+        //model.setPokemonInfo(starter.getNumber(), DBContract.PokedexDB.CATCH_STATE, "CAUGHT");
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }

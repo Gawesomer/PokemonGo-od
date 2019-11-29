@@ -5,24 +5,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.location.Location;
+import android.graphics.ColorSpace;
 import android.os.Bundle;
-import android.os.Looper;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -31,8 +19,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -74,27 +60,22 @@ public class MapsActivity extends FragmentActivity implements PropertyChangeList
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if (event.getPropertyName().equals(Model.Properties.CURRLOCATION.toString())) {
-            updateLocationUI();
-        } else if (event.getPropertyName().equals(Model.Properties.WILDPOKEMON.toString())) {
-            int index = (Integer)event.getNewValue();
-            if (wildPokemonMarkers[index] != null) {
-                wildPokemonMarkers[index].remove();
-            }
-            wildPokemonMarkers[index] = mMap.addMarker(new MarkerOptions()
-                    .flat(true)
-                    .icon(BitmapDescriptorFactory.fromBitmap(model.resizeMapIcons("wild_pokemon", 100, 100)))
-                    .anchor(0.5f, 0.5f)
-                    .draggable(true)      // Enables marker dragging used for debugging
-                    .position( (model.getWildPokemons()[index]).getCoordinates() ));
+        switch (Model.Properties.valueOf(event.getPropertyName())) {
+            case CURRLOCATION:
+                updateLocationUI();
+                break;
+            case WILDPOKEMON:
+                int index = (Integer)event.getNewValue();
+                if (wildPokemonMarkers[index] != null) {
+                    wildPokemonMarkers[index].remove();
+                }
+                wildPokemonMarkers[index] = mMap.addMarker(new MarkerOptions()
+                        .flat(true)
+                        .icon(BitmapDescriptorFactory.fromBitmap(model.resizeMapIcons("wild_pokemon", 100, 100)))
+                        .anchor(0.5f, 0.5f)
+                        .draggable(true)      // Enables marker dragging used for debugging
+                        .position( (model.getWildPokemons()[index]).getCoordinates() ));
         }
-        // TODO: Switch to a switch
-//        switch (event.getPropertyName()) {
-//            case Model.Properties.CURRLOCATION.toString():
-//                updateLocationUI();
-//                break;
-//            default:
-//        }
     }
 
 

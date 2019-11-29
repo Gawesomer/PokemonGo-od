@@ -2,13 +2,19 @@ package com.example.pokemongo_od;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -144,7 +150,9 @@ public class Controller implements PropertyChangeListener {
                             // Set the map's camera position to the current location of the device
                             model.setCurrLocation(task.getResult());
                             for (int i = 0; i < wildPokemons.length; i++) {
-                                model.respawnWildPokemon(i);
+                                if (wildPokemons[i] == null) {
+                                    model.respawnWildPokemon(i);
+                                }
                             }
                         } else {
                             Log.d(LOGTAG, "Current location is null. Using defaults.");

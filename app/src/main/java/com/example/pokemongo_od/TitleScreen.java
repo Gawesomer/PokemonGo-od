@@ -13,6 +13,8 @@ import java.util.Random;
 
 public class TitleScreen extends AppCompatActivity {
 
+    private Model model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,7 +24,7 @@ public class TitleScreen extends AppCompatActivity {
         currentApplication.setCurrActivity(this);
         getApplication().registerActivityLifecycleCallbacks(currentApplication);
 
-        final Model model = Model.getInstance();
+        model = Model.getInstance();
         model.init(currentApplication);
 
         Random r = new Random();
@@ -34,7 +36,7 @@ public class TitleScreen extends AppCompatActivity {
 
         // Switch to map activity onClick
         final Activity activity = this;
-        ConstraintLayout layout = findViewById(R.id.titleLayout);
+        ConstraintLayout layout = activity.findViewById(R.id.titleLayout);
         layout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -44,7 +46,7 @@ public class TitleScreen extends AppCompatActivity {
                 } else {
                     intent = new Intent(activity, MapsActivity.class);
                 }
-                startActivity(intent);
+                activity.startActivity(intent);
             }
         });
     }

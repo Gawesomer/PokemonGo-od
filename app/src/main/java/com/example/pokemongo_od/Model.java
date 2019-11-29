@@ -1,10 +1,7 @@
 package com.example.pokemongo_od;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -45,7 +42,6 @@ public class Model {
     private SQLiteDatabase db;
     private List<PropertyChangeListener> listeners = new ArrayList<>();
     public enum Properties { CURRLOCATION, WILDPOKEMON, ACTIVITY }
-    public enum ActivityNames { TITLE, MAP, MENU, TEAM, POKEDEX, STORAGE, STARTER, POKEDEX_ENTRY }
 
 
     protected Model() {
@@ -377,6 +373,8 @@ public class Model {
         }
 
         db.insert(DBContract.PokemonStorage.TABLE_NAME, null, values);
+
+        setPokemonInfo(pokemon.getNumber(), DBContract.PokedexDB.CATCH_STATE, "CAUGHT");
     }
 
 }

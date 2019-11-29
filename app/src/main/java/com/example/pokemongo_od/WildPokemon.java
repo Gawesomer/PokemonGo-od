@@ -1,13 +1,7 @@
 package com.example.pokemongo_od;
 
 import android.location.Location;
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.Random;
