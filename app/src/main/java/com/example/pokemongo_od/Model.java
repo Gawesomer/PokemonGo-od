@@ -37,7 +37,6 @@ public class Model {
     private WildPokemon[] wildPokemons;
     private final int numWildPokemon = 5;
     private Pokemon pokemonEncountered;
-    private int firstAvailableTeamSlot = 0;
     private DBHelper dbHelper;
     private SQLiteDatabase db;
     private List<PropertyChangeListener> listeners = new ArrayList<>();
@@ -64,21 +63,7 @@ public class Model {
 
         currLocation = defaultLocation;
 
-        if (teamIsEmpty()) {
-            firstRun = true;
-            firstAvailableTeamSlot = 1;
-        } else {
-            firstRun = false;
-            Pokemon[] team = getTeam();
-            for (int i = 0; i < team.length; i++) {
-                if (team[i] == null) {
-                    firstAvailableTeamSlot = i+1;
-                }
-            }
-            if (firstAvailableTeamSlot == 0) {
-                firstAvailableTeamSlot = 7;
-            }
-        }
+        firstRun = teamIsEmpty();
     }
 
     private void copyDB() {
@@ -189,7 +174,6 @@ public class Model {
 
     private void notifyListeners(String property, Object oldValue, Object newValue) {
         for (PropertyChangeListener listener : listeners) {
-            Log.d("myTag", "\t- " + listener.toString());
             listener.propertyChange(new PropertyChangeEvent(this, property, oldValue, newValue));
         }
     }
@@ -284,7 +268,7 @@ public class Model {
 
         // Filter results WHERE "title" = 'My Title'
         String selection = DBContract.PokemonStorage.TEAM_INDEX + " != ?";
-        String[] selectionArgs = { "0" };
+        String[] selectionArgs = { "6" };
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder = DBContract.PokemonStorage.TEAM_INDEX + " ASC";
@@ -329,7 +313,7 @@ public class Model {
 
         // Filter results WHERE "title" = 'My Title'
         String selection = DBContract.PokemonStorage.TEAM_INDEX + " = ?";
-        String[] selectionArgs = { "0" };
+        String[] selectionArgs = { "6" };
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder = DBContract.PokemonStorage.TEAM_INDEX + " ASC";
@@ -361,15 +345,26 @@ public class Model {
         return stored;
     }
 
+    private int getFirstAvailableTeamSlot() {
+        Pokemon[] team = getTeam();
+        for (int i = 0; i < team.length; i++) {
+            if (team[i] == null) {
+                return i;
+            }
+        }
+        return team.length;
+    }
+
     void addToStorage(Pokemon pokemon) {
         // New value for one column
         ContentValues values = new ContentValues();
         values.put(DBContract.PokemonStorage.POKEMON_NUMBER, pokemon.getNumber());
-        if (firstAvailableTeamSlot <= 6) {
-            values.put(DBContract.PokemonStorage.TEAM_INDEX, firstAvailableTeamSlot);
-            firstAvailableTeamSlot++;
+        if (getFirstAvailableTeamSlot() < 6) {
+            Log.d("myTag", "Model: addToStorage: team");
+            values.put(DBContract.PokemonStorage.TEAM_INDEX, getFirstAvailableTeamSlot());
         } else {
-            values.put(DBContract.PokemonStorage.TEAM_INDEX, 0);
+            Log.d("myTag", "Model: addToStorage: storage");
+            values.put(DBContract.PokemonStorage.TEAM_INDEX, 6);
         }
 
         db.insert(DBContract.PokemonStorage.TABLE_NAME, null, values);

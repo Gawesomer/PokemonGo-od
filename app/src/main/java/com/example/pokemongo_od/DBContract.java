@@ -17,7 +17,7 @@ public final class DBContract {
     public static class PokemonStorage implements BaseColumns {
         public static final String TABLE_NAME = "pokemon_storage";
         public static final String POKEMON_NUMBER = "pokemon_number";
-        public static final String TEAM_INDEX = "team_index";   // 0 if not in team else [1-6] represents position in team
+        public static final String TEAM_INDEX = "team_index";   // 6 if not in team else [0-5] represents position in team
     }
 
 }

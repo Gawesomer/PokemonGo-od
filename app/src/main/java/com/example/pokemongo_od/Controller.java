@@ -1,20 +1,13 @@
 package com.example.pokemongo_od;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -94,7 +87,7 @@ public class Controller implements PropertyChangeListener {
                                     results);
                             if (results[0] <= encounterRadius) {
                                 // Found Pokemon
-                                wildPokemons[i].setPokemonSeen();
+                                //wildPokemons[i].setPokemonSeen();
                                 Model.getInstance().addToStorage(wildPokemons[i]);
                                 Toast myToast = Toast.makeText(model.getCurrActivity(),
                                         "Seen: " + wildPokemons[i].getNumber(),
