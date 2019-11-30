@@ -253,8 +253,7 @@ public class Model {
     }
 
     private boolean teamIsEmpty() {
-        Pokemon[] team = getTeam();
-        return team[0] == null;
+        return getFirstAvailableTeamSlot() == 0;
     }
 
     Pokemon[] getTeam() {
